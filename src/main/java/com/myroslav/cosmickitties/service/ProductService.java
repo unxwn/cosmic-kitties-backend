@@ -58,7 +58,6 @@ public class ProductService implements IProductService {
 
     @Override
     public void delete(Long id) {
-        repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         repo.deleteById(id);
     }
 }
