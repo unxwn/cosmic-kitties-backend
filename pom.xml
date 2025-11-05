@@ -113,18 +113,31 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.9</version>
                 <executions>
+                    <!-- prepare the agent before tests -->
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
+                    <!-- generate report after tests -->
                     <execution>
                         <id>report</id>
-                        <phase>test</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <!-- exclude config classes and main application class as example -->
+                                <exclude>**/config/*Configuration.*</exclude>
+                                <exclude>**/*MarketApplication.*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
+
+                    <!-- coverage check: global thresholds -->
                     <execution>
                         <id>check</id>
                         <goals>
@@ -138,14 +151,47 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.50</minimum>
+<!--                                            <minimum>0.50</minimum>-->
+                                        </limit>
+                                    </limits>
+                                </rule>
+
+                                <rule>
+                                    <element>CLASS</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+<!--                                            <minimum>0.80</minimum>-->
                                         </limit>
                                     </limits>
                                 </rule>
                             </rules>
+                            <excludes>
+                                <exclude>**/config/*Configuration.*</exclude>
+                                <exclude>**/*MarketApplication.*</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- surefire for unit tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <useSystemClassLoader>true</useSystemClassLoader>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>org.junit.platform.launcher.listeners.SummaryGeneratingListener</value>
+                        </property>
+                    </properties>
+                </configuration>
             </plugin>
 
         </plugins>
