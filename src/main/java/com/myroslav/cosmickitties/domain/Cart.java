@@ -1,11 +1,14 @@
 package com.myroslav.cosmickitties.domain;
 
-import java.util.ArrayList;
+import lombok.Builder;
+import lombok.Value;
 import java.util.List;
 
+@Value
+@Builder
 public class Cart {
-    private Long id;
-    private List<Long> productIds = new ArrayList<>();
+    Long id;
+    List<Long> productIds;
 
     public Cart() {}
     public Cart(Long id) { this.id = id; }
