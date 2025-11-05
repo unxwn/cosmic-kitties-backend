@@ -58,6 +58,6 @@ public class ProductService implements IProductService {
 
     @Override
     public void delete(Long id) {
-        repo.deleteById(id);
+        repo.findById(id).ifPresent(p -> repo.deleteById(id));
     }
 }
