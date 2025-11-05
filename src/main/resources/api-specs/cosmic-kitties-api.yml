@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
-  /api/products:
+  /api/v1/products:
     get:
       summary: List products
       responses:
@@ -35,7 +35,7 @@ paths:
                 $ref: '#/components/schemas/ProductDTO'
         '400':
           description: Validation error
-  /api/products/{id}:
+  /api/v1/products/{id}:
     get:
       summary: Get product by id
       parameters:
