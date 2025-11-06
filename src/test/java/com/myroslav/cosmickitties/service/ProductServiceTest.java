@@ -141,11 +141,4 @@ class ProductServiceTest {
 
         verify(repo).deleteById(4L);
     }
-
-//    @Test
-//    void delete_missing_shouldThrow() {
-//        when(repo.findById(100L)).thenReturn(Optional.empty());
-//        assertThatThrownBy(() -> service.delete(100L))
-//                .isInstanceOf(ResourceNotFoundException.class);
-//    }
 }

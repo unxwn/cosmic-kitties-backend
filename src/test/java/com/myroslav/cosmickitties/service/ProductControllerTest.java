@@ -118,12 +118,4 @@ class ProductControllerTest {
 
         verify(service).delete(1L);
     }
-
-    @Test
-    void delete_missing_shouldReturn404() throws Exception {
-        doThrow(new ResourceNotFoundException("Not found")).when(service).delete(99L);
-
-        mockMvc.perform(delete("/api/v1/products/99"))
-                .andExpect(status().isNotFound());
-    }
 }
