@@ -60,7 +60,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Test (optional) -->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -113,31 +113,18 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.9</version>
                 <executions>
-                    <!-- prepare the agent before tests -->
                     <execution>
-                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-
-                    <!-- generate report after tests -->
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <configuration>
-                            <excludes>
-                                <!-- exclude config classes and main application class as example -->
-                                <exclude>**/config/*Configuration.*</exclude>
-                                <exclude>**/*MarketApplication.*</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
-
-                    <!-- coverage check: global thresholds -->
                     <execution>
                         <id>check</id>
                         <goals>
@@ -146,31 +133,16 @@
                         <configuration>
                             <rules>
                                 <rule>
-                                    <element>BUNDLE</element>
+                                    <element>CLASS</element>
                                     <limits>
                                         <limit>
-                                            <counter>LINE</counter>
+                                            <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
 <!--                                            <minimum>0.50</minimum>-->
                                         </limit>
                                     </limits>
                                 </rule>
-
-                                <rule>
-                                    <element>CLASS</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>LINE</counter>
-                                            <value>COVEREDRATIO</value>
-<!--                                            <minimum>0.80</minimum>-->
-                                        </limit>
-                                    </limits>
-                                </rule>
                             </rules>
-                            <excludes>
-                                <exclude>**/config/*Configuration.*</exclude>
-                                <exclude>**/*MarketApplication.*</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
