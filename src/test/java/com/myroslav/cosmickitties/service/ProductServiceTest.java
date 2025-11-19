@@ -5,55 +5,45 @@ import com.myroslav.cosmickitties.dto.ProductDTO;
 import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
 import com.myroslav.cosmickitties.mapper.ProductMapper;
 import com.myroslav.cosmickitties.repository.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static com.myroslav.cosmickitties.ProductFactory.java.ProductFactory.productDomain;
+import static com.myroslav.cosmickitties.ProductFactory.java.ProductFactory.productDto;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for ProductService.
  * Use Mockito for repo + mapper, test happy and error flows.
  */
+@ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
+    @Mock
     private ProductRepository repo;
+
+    @Mock
     private ProductMapper mapper;
+
+    @InjectMocks
     private ProductService service;
-
-    @BeforeEach
-    void setUp() {
-        repo = mock(ProductRepository.class);
-        mapper = mock(ProductMapper.class);
-        service = new ProductService(repo, mapper);
-    }
-
-    private Product makeDomain(Long id, String name, BigDecimal price) {
-        return new Product(id, name, "desc", price, 1L, true);
-    }
-
-    private ProductDTO makeDto(Long id, String name, BigDecimal price) {
-        ProductDTO d = new ProductDTO();
-        d.setId(id);
-        d.setName(name);
-        d.setPrice(price);
-        d.setCategoryId(1L);
-        d.setDescription("desc");
-        d.setAvailable(true);
-        return d;
-    }
 
     @Test
     void create_shouldReturnDtoWithId() {
-        ProductDTO input = makeDto(null, "star yarn", new BigDecimal("9.99"));
-        Product domain = makeDomain(null, input.getName(), input.getPrice());
-        Product saved = makeDomain(1L, input.getName(), input.getPrice());
-        ProductDTO outDto = makeDto(1L, input.getName(), input.getPrice());
+        ProductDTO input = productDto(null, "star yarn", new BigDecimal("9.99"));
+        Product domain = productDomain(null, input.getName(), input.getPrice());
+        Product saved = productDomain(1L, input.getName(), input.getPrice());
+        ProductDTO outDto = productDto(1L, input.getName(), input.getPrice());
 
         when(mapper.toDomain(input)).thenReturn(domain);
         when(repo.save(domain)).thenReturn(saved);
@@ -69,8 +59,8 @@ class ProductServiceTest {
 
     @Test
     void getById_existing_shouldReturnDto() {
-        Product domain = makeDomain(2L, "galaxy milk", new BigDecimal("3.50"));
-        ProductDTO dto = makeDto(2L, domain.getName(), domain.getPrice());
+        Product domain = productDomain(2L, "galaxy milk", new BigDecimal("3.50"));
+        ProductDTO dto = productDto(2L, domain.getName(), domain.getPrice());
 
         when(repo.findById(2L)).thenReturn(Optional.of(domain));
         when(mapper.toDto(domain)).thenReturn(dto);
@@ -91,11 +81,11 @@ class ProductServiceTest {
 
     @Test
     void getAll_shouldReturnList() {
-        Product p1 = makeDomain(1L, "star 1", new BigDecimal("1.00"));
-        Product p2 = makeDomain(2L, "star 2", new BigDecimal("2.00"));
+        Product p1 = productDomain(1L, "star 1", new BigDecimal("1.00"));
+        Product p2 = productDomain(2L, "star 2", new BigDecimal("2.00"));
         when(repo.findAll()).thenReturn(List.of(p1, p2));
-        when(mapper.toDto(p1)).thenReturn(makeDto(1L, p1.getName(), p1.getPrice()));
-        when(mapper.toDto(p2)).thenReturn(makeDto(2L, p2.getName(), p2.getPrice()));
+        when(mapper.toDto(p1)).thenReturn(productDto(1L, p1.getName(), p1.getPrice()));
+        when(mapper.toDto(p2)).thenReturn(productDto(2L, p2.getName(), p2.getPrice()));
 
         var list = service.getAll();
 
@@ -105,12 +95,12 @@ class ProductServiceTest {
 
     @Test
     void update_existing_shouldReturnUpdated() {
-        Product existing = makeDomain(3L, "old star", new BigDecimal("5.00"));
-        ProductDTO updateDto = makeDto(null, "new star", new BigDecimal("6.00"));
+        Product existing = productDomain(3L, "old star", new BigDecimal("5.00"));
+        ProductDTO updateDto = productDto(null, "new star", new BigDecimal("6.00"));
 
         when(repo.findById(3L)).thenReturn(Optional.of(existing));
         when(repo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(mapper.toDto(any(Product.class))).thenReturn(makeDto(3L, "new star", new BigDecimal("6.00")));
+        when(mapper.toDto(any(Product.class))).thenReturn(productDto(3L, "new star", new BigDecimal("6.00")));
 
         ProductDTO result = service.update(3L, updateDto);
 
@@ -125,7 +115,7 @@ class ProductServiceTest {
     @Test
     void update_missing_shouldThrow() {
         when(repo.findById(10L)).thenReturn(Optional.empty());
-        ProductDTO dto = makeDto(null, "star", new BigDecimal("1.00"));
+        ProductDTO dto = productDto(null, "star", new BigDecimal("1.00"));
 
         assertThatThrownBy(() -> service.update(10L, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -133,7 +123,7 @@ class ProductServiceTest {
 
     @Test
     void delete_existing_shouldCallRepoDelete() {
-        Product existing = makeDomain(4L, "star", new BigDecimal("2.00"));
+        Product existing = productDomain(4L, "star", new BigDecimal("2.00"));
         when(repo.findById(4L)).thenReturn(Optional.of(existing));
         doNothing().when(repo).deleteById(4L);
 
