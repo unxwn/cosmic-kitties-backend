@@ -4,14 +4,12 @@ import com.myroslav.cosmickitties.service.CosmoCatService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@SpringBootTest
-@TestPropertySource(properties = "feature.cosmoCats.enabled=true")
+@SpringBootTest(properties = "features.cosmo-cats.enabled=true")
 class CosmoCatServiceFeatureOnTest {
 
     @Autowired
@@ -21,6 +19,6 @@ class CosmoCatServiceFeatureOnTest {
     void getCosmoCats_whenFeatureEnabled_returnsList() {
         List<String> cats = cosmoCatService.getCosmoCats();
         assertThat(cats).isNotNull().isNotEmpty();
-        assertThat(cats).contains("Vanya the Voyager");
+        assertThat(cats).contains("Rocket the Voyager");
     }
 }
