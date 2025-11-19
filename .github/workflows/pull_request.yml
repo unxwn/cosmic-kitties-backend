@@ -1,0 +1,41 @@
+name: Build and Test Coverage (Maven)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - '**'
+
+jobs:
+  build:
+    name: Build, Test & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Cache Maven repositories
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
+
+      - name: Build and run tests (Maven)
+        run: mvn -B -U -DskipTests=false verify
+
+      - name: Upload JaCoCo HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report-html
+          path: target/site/jacoco
+          
