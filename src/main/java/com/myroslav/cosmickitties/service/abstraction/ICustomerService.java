@@ -4,7 +4,7 @@ import com.myroslav.cosmickitties.dto.CustomerDTO;
 
 import java.util.List;
 
-public interface CustomerService {
+public interface ICustomerService {
     CustomerDTO create(CustomerDTO dto);
     CustomerDTO getById(Long id);
     List<CustomerDTO> getAll();

@@ -1,4 +1,4 @@
-package com.myroslav.cosmickitties.service;
+package com.myroslav.cosmickitties.service.abstraction;
 
 import com.myroslav.cosmickitties.dto.ProductDTO;
 
