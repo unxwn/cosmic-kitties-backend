@@ -1,14 +1,17 @@
 package com.myroslav.cosmickitties.mapper;
 
+
 import com.myroslav.cosmickitties.domain.Product;
 import com.myroslav.cosmickitties.dto.ProductDTO;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
-    ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
 
-    ProductDTO toDto(Product product);
-    Product toDomain(ProductDTO dto);
+    @Mapping(target = "categoryId", source = "category.id")
+    ProductDTO toDto(Product entity);
+
+    @Mapping(target = "category", ignore = true)
+    Product toEntity(ProductDTO dto);
 }
