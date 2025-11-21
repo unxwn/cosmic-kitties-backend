@@ -1,4 +1,4 @@
-package com.myroslav.cosmickitties.service;
+package com.myroslav.cosmickitties.service.implementation;
 
 import com.myroslav.cosmickitties.dto.ProductDTO;
 import com.myroslav.cosmickitties.domain.Category;
@@ -7,6 +7,7 @@ import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
 import com.myroslav.cosmickitties.mapper.ProductMapper;
 import com.myroslav.cosmickitties.repository.CategoryRepository;
 import com.myroslav.cosmickitties.repository.ProductRepository;
+import com.myroslav.cosmickitties.service.abstraction.IProductService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
