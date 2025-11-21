@@ -36,6 +36,9 @@ public class CustomerService implements ICustomerService {
         }
 
         Customer entity = mapper.toEntity(dto);
+        if (entity.getCreatedAt() == null) {
+            entity.setCreatedAt(java.time.LocalDateTime.now());
+        }
         Customer saved = repo.save(entity);
         return mapper.toDto(saved);
     }
