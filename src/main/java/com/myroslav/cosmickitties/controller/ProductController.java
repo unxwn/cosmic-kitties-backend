@@ -1,7 +1,7 @@
 package com.myroslav.cosmickitties.controller;
 
 import com.myroslav.cosmickitties.dto.ProductDTO;
-import com.myroslav.cosmickitties.service.ProductService;
+import com.myroslav.cosmickitties.service.implementation.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
