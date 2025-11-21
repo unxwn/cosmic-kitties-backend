@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-unique-and-indexes
+      author: Myroslav Polishchuk
+      changes:
+        - addUniqueConstraint:
+            columnNames: name, category_id
+            tableName: products
+            constraintName: uq_products_name_category_id
+
+        - createIndex:
+            indexName: idx_products_name
+            tableName: products
+            columns:
+              - column:
+                  name: name
+

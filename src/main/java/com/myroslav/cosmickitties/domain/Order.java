@@ -1,27 +1,25 @@
 package com.myroslav.cosmickitties.domain;
 
-import java.math.BigDecimal;
-import java.util.List;
+import jakarta.persistence.*;
+import lombok.*;
 
-public class Order {
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "customer_order",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"customer_email"})})
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
+public class CustomerOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private List<Long> productIds;
-    private BigDecimal total;
 
-    public Order() {}
+    @Column(name="customer_email", nullable = false)
+    private String customerEmail;
 
-    public Order(Long id, List<Long> productIds, BigDecimal total) {
-        this.id = id;
-        this.productIds = productIds;
-        this.total = total;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public List<Long> getProductIds() { return productIds; }
-    public void setProductIds(List<Long> productIds) { this.productIds = productIds; }
-
-    public BigDecimal getTotal() { return total; }
-    public void setTotal(BigDecimal total) { this.total = total; }
+    @Column(name="created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

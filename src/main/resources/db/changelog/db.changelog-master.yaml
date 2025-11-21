@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/001-initial-schema.yaml
+  - include:
+      file: db/changelog/002-constraints-and-indexes.yaml
+  - include:
+      file: db/changelog/003-create-customers-orders.yaml
+  - include:
+      file: db/changelog/004-create-orders-products.yaml
+
