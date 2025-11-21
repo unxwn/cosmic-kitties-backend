@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "orders",
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"customer_email"})})
+@Table(name = "orders")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
