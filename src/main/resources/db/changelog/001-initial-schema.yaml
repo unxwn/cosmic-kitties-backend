@@ -3,13 +3,19 @@ databaseChangeLog:
       id: 001-create-tables
       author: Myroslav Polishchuk
       changes:
+        - createSequence:
+            sequenceName: categories_id_seq
+            dataType: bigint
+            incrementBy: 1
+            startValue: 1
+
         - createTable:
             tableName: categories
             columns:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
+                  defaultValueComputed: nextval('categories_id_seq')
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -19,13 +25,19 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createSequence:
+            sequenceName: products_id_seq
+            dataType: bigint
+            incrementBy: 1
+            startValue: 1
+
         - createTable:
             tableName: products
             columns:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
+                  defaultValueComputed: nextval('products_id_seq')
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -56,13 +68,19 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createSequence:
+            sequenceName: orders_id_seq
+            dataType: bigint
+            incrementBy: 1
+            startValue: 1
+
         - createTable:
             tableName: orders
             columns:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
+                  defaultValueComputed: nextval('orders_id_seq')
                   constraints:
                     primaryKey: true
                     nullable: false

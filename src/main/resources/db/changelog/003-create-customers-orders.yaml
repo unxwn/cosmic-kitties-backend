@@ -3,13 +3,19 @@ databaseChangeLog:
       id: 003-create-customers-and-orders-fk
       author: Myroslav Polishchuk
       changes:
+        - createSequence:
+            sequenceName: customers_id_seq
+            dataType: bigint
+            incrementBy: 1
+            startValue: 1
+
         - createTable:
             tableName: customers
             columns:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
+                  defaultValueComputed: nextval('customers_id_seq')
                   constraints:
                     primaryKey: true
                     nullable: false
