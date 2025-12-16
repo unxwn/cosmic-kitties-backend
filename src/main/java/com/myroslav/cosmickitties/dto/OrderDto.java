@@ -1,6 +1,7 @@
 package com.myroslav.cosmickitties.dto;
 
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderDTO {
+public class OrderDto {
     private Long id;
     private Long customerId;
     private List<Long> productIds;

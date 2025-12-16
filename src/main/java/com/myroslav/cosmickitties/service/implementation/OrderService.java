@@ -1,19 +1,20 @@
 package com.myroslav.cosmickitties.service.implementation;
 
-
-import com.myroslav.cosmickitties.domain.Customer;
-import com.myroslav.cosmickitties.domain.Order;
-import com.myroslav.cosmickitties.domain.Product;
-import com.myroslav.cosmickitties.dto.OrderDTO;
+import com.myroslav.cosmickitties.dto.OrderCreateRequestDto;
+import com.myroslav.cosmickitties.dto.OrderDto;
+import com.myroslav.cosmickitties.entity.Customer;
+import com.myroslav.cosmickitties.entity.Order;
+import com.myroslav.cosmickitties.entity.Product;
 import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
+import com.myroslav.cosmickitties.mapper.OrderMapper;
 import com.myroslav.cosmickitties.repository.CustomerRepository;
 import com.myroslav.cosmickitties.repository.OrderRepository;
 import com.myroslav.cosmickitties.repository.ProductRepository;
 import com.myroslav.cosmickitties.service.abstraction.IOrderService;
-import jakarta.transaction.Transactional;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -21,29 +22,33 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class OrderService implements IOrderService {
 
     private final CustomerRepository customerRepo;
     private final OrderRepository orderRepo;
     private final ProductRepository productRepo;
+    private final OrderMapper orderMapper;
 
     public OrderService(OrderRepository orderRepo,
                         ProductRepository productRepo,
-                        CustomerRepository customerRepo) {
+                        CustomerRepository customerRepo,
+                        OrderMapper orderMapper) {
         this.customerRepo = customerRepo;
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
+        this.orderMapper = orderMapper;
     }
 
     @Override
-    public OrderDTO create(OrderDTO dto) {
-        List<Long> ids = dto.getProductIds() == null ? Collections.emptyList() : dto.getProductIds();
+    @Transactional
+    public OrderDto create(OrderCreateRequestDto request) {
+        List<Long> ids = request.getProductIds() == null ? Collections.emptyList() : request.getProductIds();
 
         List<Product> products = productRepo.findAllById(ids);
         if (products.size() != ids.size()) {
-            // find which ids missing
-            Set<Long> found = products.stream().map(Product::getId).collect(Collectors.toSet());
+            Set<Long> found = products.stream()
+                    .map(Product::getId)
+                    .collect(Collectors.toSet());
             List<Long> missing = ids.stream()
                     .filter(id -> !found.contains(id))
                     .collect(Collectors.toList());
@@ -51,49 +56,67 @@ public class OrderService implements IOrderService {
         }
 
         Order order = new Order();
-        order.setCreatedAt(LocalDateTime.now());
         order.setProducts(new HashSet<>(products));
-        if (dto.getCustomerId() != null) {
-            Customer customer = customerRepo.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Customer", dto.getCustomerId()));
+        if (request.getCustomerId() != null) {
+            Customer customer = customerRepo.findById(request.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
             order.setCustomer(customer);
         }
 
         Order saved = orderRepo.save(order);
-
-        return OrderDTO.builder()
-                .id(saved.getId())
-                .customerId(getCustomerId(saved))
-                .productIds(saved.getProducts().stream().map(Product::getId).collect(Collectors.toList()))
-                .createdAt(saved.getCreatedAt())
-                .build();
+        return orderMapper.toOrderDto(saved);
     }
 
     @Override
-    public OrderDTO getById(Long id) {
+    @Transactional(readOnly = true)
+    public OrderDto getById(Long id) {
         Order saved = orderRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", id));
-        return OrderDTO.builder()
-                .id(saved.getId())
-                .customerId(getCustomerId(saved))
-                .productIds(saved.getProducts().stream().map(Product::getId).collect(Collectors.toList()))
-                .createdAt(saved.getCreatedAt())
-                .build();
+        return orderMapper.toOrderDto(saved);
     }
 
     @Override
-    public List<OrderDTO> getAll() {
-        return orderRepo.findAll().stream().map(o ->
-                OrderDTO.builder()
-                        .id(o.getId())
-                        .customerId(getCustomerId(o))
-                        .productIds(o.getProducts().stream().map(Product::getId).collect(Collectors.toList()))
-                        .createdAt(o.getCreatedAt())
-                        .build()
-        ).collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<OrderDto> getAll() {
+        return orderMapper.toOrderDtoList(orderRepo.findAll());
     }
 
-    private Long getCustomerId(Order order) {
-        return order.getCustomer() != null ? order.getCustomer().getId() : null;
+    @Override
+    @Transactional
+    public OrderDto update(Long id, OrderCreateRequestDto request) {
+        Order existing = orderRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", id));
+
+        List<Long> ids = request.getProductIds() == null ? Collections.emptyList() : request.getProductIds();
+        List<Product> products = productRepo.findAllById(ids);
+        if (products.size() != ids.size()) {
+            Set<Long> found = products.stream()
+                    .map(Product::getId)
+                    .collect(Collectors.toSet());
+            List<Long> missing = ids.stream()
+                    .filter(pid -> !found.contains(pid))
+                    .collect(Collectors.toList());
+            throw new ResourceNotFoundException("Products not found: " + missing);
+        }
+
+        existing.setProducts(new HashSet<>(products));
+        if (request.getCustomerId() != null) {
+            Customer customer = customerRepo.findById(request.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
+            existing.setCustomer(customer);
+        } else {
+            existing.setCustomer(null);
+        }
+
+        Order saved = orderRepo.save(existing);
+        return orderMapper.toOrderDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        if (orderRepo.existsById(id)) {
+            orderRepo.deleteById(id);
+        }
     }
 }

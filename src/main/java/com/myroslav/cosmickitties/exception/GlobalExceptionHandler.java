@@ -1,80 +1,73 @@
 package com.myroslav.cosmickitties.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URI;
 import java.util.stream.Collectors;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handle validation errors from @Valid on request bodies
+    private ProblemDetail buildProblemDetail(HttpStatus status, String title, String detail) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle(title);
+        return problem;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String details = ex.getBindingResult().getFieldErrors().stream()
                 .map(f -> "Field '" + f.getField() + "': " + f.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed: " + details,
-                request.getRequestURI()
+        return buildProblemDetail(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                details
         );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Handle validation errors from @Validated on path/params (ConstraintViolationException)
     @ExceptionHandler(ConstraintViolationException.class)
-    protected ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
         String details = ex.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining("; "));
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed: " + details,
-                request.getRequestURI()
+        return buildProblemDetail(
+                HttpStatus.BAD_REQUEST,
+                "Constraint violation",
+                details
         );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return buildProblemDetail(
+                HttpStatus.NOT_FOUND,
+                "Resource not found",
+                ex.getMessage()
         );
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    // Generic handler
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException ex, HttpServletRequest request) {
+        return buildProblemDetail(
+                HttpStatus.CONFLICT,
+                "Email already exists",
+                ex.getMessage()
+        );
+    }
+
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
+    public ProblemDetail handleGeneric(Exception ex, HttpServletRequest request) {
+        return buildProblemDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal server error",
+                "An unexpected error occurred"
         );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("status", "400");
-        error.put("error", "Bad Request");
-        error.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(error);
     }
 }

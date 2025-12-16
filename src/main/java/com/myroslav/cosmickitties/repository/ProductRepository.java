@@ -1,6 +1,6 @@
 package com.myroslav.cosmickitties.repository;
 
-import com.myroslav.cosmickitties.domain.Product;
+import com.myroslav.cosmickitties.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

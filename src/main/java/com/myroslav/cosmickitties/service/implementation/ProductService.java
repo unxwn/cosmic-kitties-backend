@@ -1,8 +1,8 @@
 package com.myroslav.cosmickitties.service.implementation;
 
 import com.myroslav.cosmickitties.dto.ProductDTO;
-import com.myroslav.cosmickitties.domain.Category;
-import com.myroslav.cosmickitties.domain.Product;
+import com.myroslav.cosmickitties.entity.Category;
+import com.myroslav.cosmickitties.entity.Product;
 import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
 import com.myroslav.cosmickitties.mapper.ProductMapper;
 import com.myroslav.cosmickitties.repository.CategoryRepository;
@@ -34,22 +34,22 @@ public class ProductService implements IProductService {
     public ProductDTO create(ProductDTO dto) {
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category", dto.getCategoryId()));
-        Product entity = mapper.toEntity(dto);
+        Product entity = mapper.toProductEntity(dto);
         entity.setCategory(category);
         Product saved = productRepo.save(entity);
-        return mapper.toDto(saved);
+        return mapper.toProductDto(saved);
     }
 
     @Override
     public ProductDTO getById(Long id) {
         Product p = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
-        return mapper.toDto(p);
+        return mapper.toProductDto(p);
     }
 
     @Override
     public List<ProductDTO> getAll() {
-        return productRepo.findAll().stream().map(mapper::toDto).collect(Collectors.toList());
+        return productRepo.findAll().stream().map(mapper::toProductDto).collect(Collectors.toList());
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ProductService implements IProductService {
             existing.setCategory(cat);
         }
         Product saved = productRepo.save(existing);
-        return mapper.toDto(saved);
+        return mapper.toProductDto(saved);
     }
 
     @Override
