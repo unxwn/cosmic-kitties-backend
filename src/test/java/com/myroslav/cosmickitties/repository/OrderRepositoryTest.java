@@ -1,9 +1,9 @@
 package com.myroslav.cosmickitties.repository;
 
-import com.myroslav.cosmickitties.domain.Category;
-import com.myroslav.cosmickitties.domain.Customer;
-import com.myroslav.cosmickitties.domain.Order;
-import com.myroslav.cosmickitties.domain.Product;
+import com.myroslav.cosmickitties.entity.Category;
+import com.myroslav.cosmickitties.entity.Customer;
+import com.myroslav.cosmickitties.entity.Order;
+import com.myroslav.cosmickitties.entity.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,29 +63,7 @@ class OrderRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Trigger schema creation by creating dummy entities in dependency order
-        Category dummyCategory = Category.builder().name("dummy_cat").build();
-        dummyCategory = categoryRepository.saveAndFlush(dummyCategory);
-        
-        Customer dummyCustomer = Customer.builder()
-                .email("dummy@test.com")
-                .firstName("Dummy")
-                .lastName("User")
-                .createdAt(LocalDateTime.now())
-                .build();
-        dummyCustomer = customerRepository.saveAndFlush(dummyCustomer);
-        
-        Product dummyProduct = Product.builder()
-                .name("dummy_product")
-                .price(new BigDecimal("1.00"))
-                .available(true)
-                .category(dummyCategory)
-                .build();
-        dummyProduct = productRepository.saveAndFlush(dummyProduct);
-        
-        // Delete all - skip orders table as it may not exist yet
-        // Orders table will be created when first Order is saved in a test
-        // Since @DataJpaTest uses transactions, each test will rollback anyway
+        orderRepository.deleteAll();
         productRepository.deleteAll();
         customerRepository.deleteAll();
         categoryRepository.deleteAll();
@@ -99,7 +77,6 @@ class OrderRepositoryTest {
                 .email("customer@example.com")
                 .firstName("Test")
                 .lastName("Customer")
-                .createdAt(LocalDateTime.now())
                 .build();
         testCustomer = customerRepository.save(testCustomer);
 
@@ -128,7 +105,6 @@ class OrderRepositoryTest {
         products.add(testProduct2);
 
         Order order = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products)
                 .build();
@@ -150,7 +126,6 @@ class OrderRepositoryTest {
         products.add(testProduct1);
 
         Order order = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products)
                 .build();
@@ -172,7 +147,6 @@ class OrderRepositoryTest {
         products.add(testProduct1);
 
         Order order = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products)
                 .build();
@@ -222,13 +196,11 @@ class OrderRepositoryTest {
         products2.add(testProduct2);
 
         Order order1 = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products1)
                 .build();
 
         Order order2 = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products2)
                 .build();
@@ -250,7 +222,6 @@ class OrderRepositoryTest {
         products.add(testProduct1);
 
         Order order = Order.builder()
-                .createdAt(LocalDateTime.now())
                 .customer(testCustomer)
                 .products(products)
                 .build();

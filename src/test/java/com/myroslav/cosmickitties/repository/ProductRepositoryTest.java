@@ -1,7 +1,7 @@
 package com.myroslav.cosmickitties.repository;
 
-import com.myroslav.cosmickitties.domain.Category;
-import com.myroslav.cosmickitties.domain.Product;
+import com.myroslav.cosmickitties.entity.Category;
+import com.myroslav.cosmickitties.entity.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +49,6 @@ class ProductRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Trigger schema creation by creating a dummy entity
-        Category dummyCategory = Category.builder().name("dummy").build();
-        categoryRepository.saveAndFlush(dummyCategory);
-        
-        // Now we can safely delete all
         productRepository.deleteAll();
         categoryRepository.deleteAll();
         testCategory = Category.builder()

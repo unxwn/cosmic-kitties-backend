@@ -1,6 +1,6 @@
 package com.myroslav.cosmickitties.repository;
 
-import com.myroslav.cosmickitties.domain.Customer;
+import com.myroslav.cosmickitties.entity.Customer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +43,6 @@ class CustomerRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Trigger schema creation by creating a dummy entity
-        Customer dummyCustomer = Customer.builder()
-                .email("dummy@test.com")
-                .firstName("Dummy")
-                .lastName("User")
-                .createdAt(java.time.LocalDateTime.now())
-                .build();
-        customerRepository.saveAndFlush(dummyCustomer);
-        
-        // Now we can safely delete all
         customerRepository.deleteAll();
     }
 

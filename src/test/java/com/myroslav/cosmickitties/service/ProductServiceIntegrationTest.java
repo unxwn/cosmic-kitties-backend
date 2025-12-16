@@ -1,7 +1,7 @@
 package com.myroslav.cosmickitties.service;
 
-import com.myroslav.cosmickitties.domain.Category;
 import com.myroslav.cosmickitties.dto.ProductDTO;
+import com.myroslav.cosmickitties.entity.Category;
 import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
 import com.myroslav.cosmickitties.repository.CategoryRepository;
 import com.myroslav.cosmickitties.repository.ProductRepository;
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,11 +55,6 @@ class ProductServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Trigger schema creation by creating a dummy entity
-        Category dummyCategory = Category.builder().name("dummy").build();
-        categoryRepository.saveAndFlush(dummyCategory);
-        
-        // Now we can safely delete all
         productRepository.deleteAll();
         categoryRepository.deleteAll();
         testCategory = Category.builder()
@@ -71,7 +65,6 @@ class ProductServiceIntegrationTest {
 
     @Test
     void testCreateProduct() {
-        // Given
         ProductDTO dto = ProductDTO.builder()
                 .name("Laptop")
                 .description("High-performance laptop")
@@ -80,10 +73,8 @@ class ProductServiceIntegrationTest {
                 .categoryId(testCategory.getId())
                 .build();
 
-        // When
         ProductDTO created = productService.create(dto);
 
-        // Then
         assertNotNull(created.getId());
         assertEquals("Laptop", created.getName());
         assertEquals("High-performance laptop", created.getDescription());
@@ -94,20 +85,17 @@ class ProductServiceIntegrationTest {
 
     @Test
     void testCreateProductWithNonExistentCategory() {
-        // Given
         ProductDTO dto = ProductDTO.builder()
                 .name("Laptop")
                 .price(new BigDecimal("1299.99"))
                 .categoryId(999L)
                 .build();
 
-        // When & Then
         assertThrows(ResourceNotFoundException.class, () -> productService.create(dto));
     }
 
     @Test
     void testGetProductById() {
-        // Given
         ProductDTO dto = ProductDTO.builder()
                 .name("Mouse")
                 .price(new BigDecimal("29.99"))
@@ -116,10 +104,8 @@ class ProductServiceIntegrationTest {
                 .build();
         ProductDTO created = productService.create(dto);
 
-        // When
         ProductDTO found = productService.getById(created.getId());
 
-        // Then
         assertNotNull(found);
         assertEquals("Mouse", found.getName());
         assertEquals(new BigDecimal("29.99"), found.getPrice());
@@ -127,13 +113,11 @@ class ProductServiceIntegrationTest {
 
     @Test
     void testGetProductByIdNotFound() {
-        // When & Then
         assertThrows(ResourceNotFoundException.class, () -> productService.getById(999L));
     }
 
     @Test
     void testGetAllProducts() {
-        // Given
         ProductDTO dto1 = ProductDTO.builder()
                 .name("Product 1")
                 .price(new BigDecimal("10.00"))
@@ -149,16 +133,13 @@ class ProductServiceIntegrationTest {
         productService.create(dto1);
         productService.create(dto2);
 
-        // When
         List<ProductDTO> all = productService.getAll();
 
-        // Then
         assertEquals(2, all.size());
     }
 
     @Test
     void testUpdateProduct() {
-        // Given
         ProductDTO dto = ProductDTO.builder()
                 .name("Keyboard")
                 .price(new BigDecimal("79.99"))
@@ -167,7 +148,6 @@ class ProductServiceIntegrationTest {
                 .build();
         ProductDTO created = productService.create(dto);
 
-        // When
         ProductDTO updateDto = ProductDTO.builder()
                 .name("Mechanical Keyboard")
                 .description("RGB Mechanical Keyboard")
@@ -177,7 +157,6 @@ class ProductServiceIntegrationTest {
                 .build();
         ProductDTO updated = productService.update(created.getId(), updateDto);
 
-        // Then
         assertEquals("Mechanical Keyboard", updated.getName());
         assertEquals("RGB Mechanical Keyboard", updated.getDescription());
         assertEquals(new BigDecimal("99.99"), updated.getPrice());
@@ -186,7 +165,6 @@ class ProductServiceIntegrationTest {
 
     @Test
     void testUpdateProductWithNewCategory() {
-        // Given
         Category newCategory = Category.builder()
                 .name("Accessories")
                 .build();
@@ -200,7 +178,6 @@ class ProductServiceIntegrationTest {
                 .build();
         ProductDTO created = productService.create(dto);
 
-        // When
         ProductDTO updateDto = ProductDTO.builder()
                 .name("Product")
                 .price(new BigDecimal("10.00"))
@@ -209,26 +186,22 @@ class ProductServiceIntegrationTest {
                 .build();
         ProductDTO updated = productService.update(created.getId(), updateDto);
 
-        // Then
         assertEquals(newCategory.getId(), updated.getCategoryId());
     }
 
     @Test
     void testUpdateProductNotFound() {
-        // Given
         ProductDTO updateDto = ProductDTO.builder()
                 .name("Product")
                 .price(new BigDecimal("10.00"))
                 .categoryId(testCategory.getId())
                 .build();
 
-        // When & Then
         assertThrows(ResourceNotFoundException.class, () -> productService.update(999L, updateDto));
     }
 
     @Test
     void testDeleteProduct() {
-        // Given
         ProductDTO dto = ProductDTO.builder()
                 .name("Monitor")
                 .price(new BigDecimal("299.99"))
@@ -238,10 +211,8 @@ class ProductServiceIntegrationTest {
         ProductDTO created = productService.create(dto);
         Long id = created.getId();
 
-        // When
         productService.delete(id);
 
-        // Then
         assertThrows(ResourceNotFoundException.class, () -> productService.getById(id));
     }
 

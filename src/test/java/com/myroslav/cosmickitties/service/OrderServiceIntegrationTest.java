@@ -1,10 +1,10 @@
 package com.myroslav.cosmickitties.service;
 
-import com.myroslav.cosmickitties.domain.Category;
-import com.myroslav.cosmickitties.domain.Customer;
-import com.myroslav.cosmickitties.domain.Order;
-import com.myroslav.cosmickitties.domain.Product;
-import com.myroslav.cosmickitties.dto.OrderDTO;
+import com.myroslav.cosmickitties.dto.OrderCreateRequestDto;
+import com.myroslav.cosmickitties.dto.OrderDto;
+import com.myroslav.cosmickitties.entity.Category;
+import com.myroslav.cosmickitties.entity.Customer;
+import com.myroslav.cosmickitties.entity.Product;
 import com.myroslav.cosmickitties.exception.ResourceNotFoundException;
 import com.myroslav.cosmickitties.repository.CategoryRepository;
 import com.myroslav.cosmickitties.repository.CustomerRepository;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +23,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,29 +70,7 @@ class OrderServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Trigger schema creation by creating dummy entities in dependency order
-        Category dummyCategory = Category.builder().name("dummy_cat").build();
-        dummyCategory = categoryRepository.saveAndFlush(dummyCategory);
-        
-        Customer dummyCustomer = Customer.builder()
-                .email("dummy@test.com")
-                .firstName("Dummy")
-                .lastName("User")
-                .createdAt(LocalDateTime.now())
-                .build();
-        dummyCustomer = customerRepository.saveAndFlush(dummyCustomer);
-        
-        Product dummyProduct = Product.builder()
-                .name("dummy_product")
-                .price(new BigDecimal("1.00"))
-                .available(true)
-                .category(dummyCategory)
-                .build();
-        dummyProduct = productRepository.saveAndFlush(dummyProduct);
-        
-        // Delete all - skip orders table as it may not exist yet
-        // Orders table will be created when first Order is saved in a test
-        // Since we're using @Transactional, each test will rollback anyway
+        orderRepository.deleteAll();
         productRepository.deleteAll();
         customerRepository.deleteAll();
         categoryRepository.deleteAll();
@@ -110,7 +84,6 @@ class OrderServiceIntegrationTest {
                 .email("customer@example.com")
                 .firstName("Test")
                 .lastName("Customer")
-                .createdAt(LocalDateTime.now())
                 .build();
         testCustomer = customerRepository.save(testCustomer);
 
@@ -133,16 +106,13 @@ class OrderServiceIntegrationTest {
 
     @Test
     void testCreateOrder() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
                 .productIds(Arrays.asList(testProduct1.getId(), testProduct2.getId()))
                 .build();
 
-        // When
-        OrderDTO created = orderService.create(dto);
+        OrderDto created = orderService.create(request);
 
-        // Then
         assertNotNull(created.getId());
         assertNotNull(created.getCreatedAt());
         assertEquals(testCustomer.getId(), created.getCustomerId());
@@ -153,15 +123,12 @@ class OrderServiceIntegrationTest {
 
     @Test
     void testCreateOrderWithoutCustomer() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .productIds(Arrays.asList(testProduct1.getId()))
                 .build();
 
-        // When
-        OrderDTO created = orderService.create(dto);
+        OrderDto created = orderService.create(request);
 
-        // Then
         assertNotNull(created.getId());
         assertNull(created.getCustomerId());
         assertEquals(1, created.getProductIds().size());
@@ -169,57 +136,47 @@ class OrderServiceIntegrationTest {
 
     @Test
     void testCreateOrderWithNonExistentCustomer() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .customerId(999L)
                 .productIds(Arrays.asList(testProduct1.getId()))
                 .build();
 
-        // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> orderService.create(dto));
+        assertThrows(ResourceNotFoundException.class, () -> orderService.create(request));
     }
 
     @Test
     void testCreateOrderWithNonExistentProduct() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
                 .productIds(Arrays.asList(testProduct1.getId(), 999L))
                 .build();
 
-        // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> orderService.create(dto));
+        assertThrows(ResourceNotFoundException.class, () -> orderService.create(request));
     }
 
     @Test
     void testCreateOrderWithEmptyProductList() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
-                .productIds(Arrays.asList())
+                .productIds(List.of())
                 .build();
 
-        // When
-        OrderDTO created = orderService.create(dto);
+        OrderDto created = orderService.create(request);
 
-        // Then
         assertNotNull(created.getId());
         assertTrue(created.getProductIds().isEmpty());
     }
 
     @Test
     void testGetOrderById() {
-        // Given
-        OrderDTO dto = OrderDTO.builder()
+        OrderCreateRequestDto request = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
                 .productIds(Arrays.asList(testProduct1.getId()))
                 .build();
-        OrderDTO created = orderService.create(dto);
+        OrderDto created = orderService.create(request);
 
-        // When
-        OrderDTO found = orderService.getById(created.getId());
+        OrderDto found = orderService.getById(created.getId());
 
-        // Then
         assertNotNull(found);
         assertEquals(created.getId(), found.getId());
         assertEquals(testCustomer.getId(), found.getCustomerId());
@@ -229,28 +186,24 @@ class OrderServiceIntegrationTest {
 
     @Test
     void testGetOrderByIdNotFound() {
-        // When & Then
         assertThrows(ResourceNotFoundException.class, () -> orderService.getById(999L));
     }
 
     @Test
     void testGetAllOrders() {
-        // Given
-        OrderDTO dto1 = OrderDTO.builder()
+        OrderCreateRequestDto request1 = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
                 .productIds(Arrays.asList(testProduct1.getId()))
                 .build();
-        OrderDTO dto2 = OrderDTO.builder()
+        OrderCreateRequestDto request2 = OrderCreateRequestDto.builder()
                 .customerId(testCustomer.getId())
                 .productIds(Arrays.asList(testProduct2.getId()))
                 .build();
-        orderService.create(dto1);
-        orderService.create(dto2);
+        orderService.create(request1);
+        orderService.create(request2);
 
-        // When
-        List<OrderDTO> all = orderService.getAll();
+        List<OrderDto> all = orderService.getAll();
 
-        // Then
         assertEquals(2, all.size());
     }
 }
